@@ -6,4 +6,4 @@ https://www.kaggle.com/datasets/wordsforthewise/lending-club?resource=download
 
 https://fred.stlouisfed.org/series/CSCICP03USM665S
 
-Use to get where economy is between 2007-2018 and compare that to fico score and other features of LendingClub Data
+Used to obtain the state of the economy between 2007-2018 and compare that to fico score and other features of LendingClub Data
