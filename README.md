@@ -1,0 +1,1 @@
+Using Python to collect data, clean, preprocess, model development, performance analysis of data from FRED & LoaningClub. Trying to find different ways of predicting if borrowers risk is low enough to approve their loan. 
