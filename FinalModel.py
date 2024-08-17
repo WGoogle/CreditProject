@@ -10,9 +10,11 @@ from sklearn.preprocessing import MinMaxScaler
 import seaborn as sb
 import lightgbm as lgb
 
+# to run this file all you need is to is download the Loans.py file, Analyze.py file and this file, and it should run smoothly.
+
 #making employment numeric 
 def label5(val5):
-    if val5 == "10+ years":
+    if val5 == "10+ years" or val5 == "10 years":
         return 10
     elif val5 == "9 years":
         return 9
@@ -90,7 +92,7 @@ joined_final2 = joined_final.drop(["mths_since_last_delinq", "grade", "emp_lengt
 y = joined_final["grade"]
 
 x_formodel = joined_final2.drop(["Grade"],axis=1)
-y_formodel = y.map({"A": 1, "B": 1, "C": 1, "D": 1, "E": 0, "F": 0, "G": 0})
+y_formodel = y.map({"A": 0, "B": 0, "C": 0, "D": 0, "E": 1, "F": 1, "G": 1})
 
 
 
@@ -99,7 +101,7 @@ y_formodel = y.map({"A": 1, "B": 1, "C": 1, "D": 1, "E": 0, "F": 0, "G": 0})
 train_x, test_x, train_y, test_y = train_test_split(x_formodel,y_formodel, train_size = 0.7, test_size = 0.3, random_state = 2000)
 s= MinMaxScaler()
 train_x[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]] = s.fit_transform(train_x[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]])
-test_x[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]] = s.fit_transform(test_x[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]])
+test_x[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]] = s.transform(test_x[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]])
 
 parameters = {"objective": "multiclass", "num_class": 2, "metric": "multi_logloss",
     "verbosity": 0}
@@ -120,8 +122,8 @@ matrix_c = m.confusion_matrix(test_y, prediction_y)
 """
 plt.figure(figsize=(6, 5))
 sb.heatmap(matrix_c, annot=True, fmt="d", cmap="Reds", cbar=True, 
-           xticklabels=["Predicted Bad Borrower (0)', 'Predicted Good Borrower (1)"],
-           yticklabels=["True Bad Borrower (0)', 'True Good Borrower (1)"])
+           xticklabels=["Predicted Good Borrower (0)", "Predicted Bad Borrower (1)"],
+           yticklabels=["True Good Borrower (0)", "True Bad Borrower (1)" ])
 plt.title("Confusion Matrix For LightGBM ML Model")
 plt.xlabel("Predicted Classification")
 plt.ylabel("True Classification")
@@ -131,29 +133,33 @@ plt.show()
 print(f'"Model Accuracy: " {acc}')
 print(class_report)
 
-"""
 
+"""
 def user_turn():
     emp_length = input("What is the employment length (in the following format, e.g., 10+ years, 4 years): ")
-    FICO = float(input("What is the FICO score: "))
-    annual_income = float(input("What is the annual income: "))
-    indicator = float(input("What is the economic indicator -- Composite Consumer Confidence Amplitude Adjusted -- currently (historically between 96-103): "))
-    trust = float(input("How many months since last delinquency: "))
+    FICO = input("What is the FICO score: ")
+    annual_income = input("What is the annual income: ")
+    indicator = input("What is the economic indicator -- Composite Consumer Confidence Amplitude Adjusted -- currently (historically between 96-103): ")
+    trust = input("How many months since last delinquency (Put 0 if there has never been delinq): ")
 
 
    
     emp = label5(emp_length)
-    trust = label2(trust)
+    trust = label2(float(trust))
 
-    user = pd.DataFrame({"EMP":[emp], "Trust": [trust], "FICO": [FICO], "Annual_Inc": [annual_income], "Indicator":[indicator]})
-    user[["EMP", "FICO", "Annual_Inc", "Indicator", "Trust"]] = s.fit_transform(user[["EMP", "FICO", "Annual_Inc", "Indicator", "Trust"]])
+    user = pd.DataFrame({"Emp":[emp], "Trust": [trust], "FICO": [float(FICO)], "annual_inc": [float(annual_income)], "Indicator":[float(indicator)]})
+    user[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]] = s.transform(user[["Emp", "FICO", "annual_inc", "Indicator", "Trust"]])
+
+    
     user_prediction = LGBM.predict(user, num_iteration=LGBM.best_iteration)
     predicted_class = np.argmax(user_prediction, axis=1)
 
-    if predicted_class[0] == 1:
+
+ 
+    if predicted_class[0] == 0:
         return "The model predicts that the loan is good and should be approved!"
 
-    if predicted_class[0] == 0:
+    elif predicted_class[0] == 1:
         return "The model predicts that the loan is bad and should not be approved!"
-    
-print(user_turn())
+
+print(user_turn())   
